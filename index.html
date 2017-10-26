@@ -61,11 +61,10 @@
         </section>
 
         <section>
-            <pre><code class="hljs" data-trim contenteditable>Drupal\Core\Database\DatabaseExceptionWrapper: Uncaught exception
-'Drupal\Core\Database\DatabaseExceptionWrapper' with message
-'SQLSTATE[40001]: Serialization failure: 1213 Deadlock
-found when trying to get lock; try restarting transaction:
-INSERT INTO {semaphore} (name, value, expire) VALUES....</code></pre>
+            <h3>16,000+ requests over an hour</h3>
+            <pre>/search?keyword=1&sort_by=*%2F%3B(function()%7bqxss%7d)%3B%2F*
+/search?keyword=1&sort_by=javascript%3Aqxss(X3038299240Y1Z)%3B
+/some-404-path?keyword=1&sort_by=a%28%29%7b%7dphpinfo%28%29%3b%20function%20a</pre>
         </section>
 
         <section>
@@ -74,10 +73,11 @@ INSERT INTO {semaphore} (name, value, expire) VALUES....</code></pre>
         </section>
 
         <section>
-            <h3>16,000+ requests over an hour</h3>
-<pre>/search?keyword=1&sort_by=*%2F%3B(function()%7bqxss%7d)%3B%2F*
-/search?keyword=1&sort_by=javascript%3Aqxss(X3038299240Y1Z)%3B
-/search?keyword=1&sort_by=a%28%29%7b%7dphpinfo%28%29%3b%20function%20a</pre>
+            <pre><code class="hljs" data-trim contenteditable>Drupal\Core\Database\DatabaseExceptionWrapper: Uncaught exception
+'Drupal\Core\Database\DatabaseExceptionWrapper' with message
+'SQLSTATE[40001]: Serialization failure: 1213 Deadlock
+found when trying to get lock; try restarting transaction:
+INSERT INTO {semaphore} (name, value, expire) VALUES....</code></pre>
         </section>
 
         <section>
@@ -94,6 +94,11 @@ INSERT INTO {semaphore} (name, value, expire) VALUES....</code></pre>
         </section>
 
         <section>
+            <h3>Most of the time was spent writing to <em>cache_render</em></h3>
+            <p>Specifically for a form.</p>
+        </section>
+
+        <section>
             <img src="img/404.png">
             <span>No default value</span>
         </section>
@@ -104,7 +109,7 @@ INSERT INTO {semaphore} (name, value, expire) VALUES....</code></pre>
         </section>
 
         <section>
-            <h3>Cache context</h3>
+            <h3>Search form cache contexts</h3>
             <p><code class="hljs" data-trim contenteditable>$form['#cache']['contexts'][] = 'url';</code></p>
             <p>This is saying, rebuild the form on every url permutation.</p>
         </section>
@@ -119,8 +124,16 @@ INSERT INTO {semaphore} (name, value, expire) VALUES....</code></pre>
         </section>
 
         <section>
+            <p>For search pages, this meant a fresh form was rendered for every query parameter permutation.</p>
+        </section>
+
+        <section>
+            <p>Resulted in a lot of <em>cache_render</em> inserts during the bot crawl</p>
+        </section>
+
+        <section>
             <h3>Solution?</h3>
-            <p>Write our own Cache context!</p>
+            <p>Smarter caching!</p>
         </section>
 
         <section>
@@ -154,13 +167,15 @@ $form['#cache']['contexts'][] = 'is_search_page';</code></pre></p>
         <section>
             <h3>Before</h3>
             <img src="img/throughput-before.png">
+            <p>~2.5 requests per second</p>
         </section>
         <section>
             <h3>After</h3>
             <img src="img/throughput-after.png">
+            <p>~25 requests per second</p>
         </section>
         <section>
-            <h3>Peaked at 8x the traffic!</h3>
+            <h3>Peaked at 10x the traffic!</h3>
         </section>
         <section>
             <h3>So the deadlocks are gone, right?</h3>
